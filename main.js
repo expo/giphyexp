@@ -65,7 +65,7 @@ class Giphyexp extends Component {
               <View style={styles.imageContainer} key={i}>
                 <Image
                   source={this.state.format === 'webp' ? {uri: image.webp} : {uri: image.gif}}
-                  style={{ width: WindowWidth, height: ((image.width / image.height) * WindowWidth) }} />
+                  style={{ width: WindowWidth, height: ((image.height / image.width) * WindowWidth) }} />
               </View>
             );
           })}
