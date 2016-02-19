@@ -15,11 +15,19 @@ import React, {
 
 const WindowWidth = Dimensions.get('window').width;
 
+const IMAGE_STYLES = [
+  'original',
+  'fixed_height',
+  'fixed_height_downsampled',
+  'fixed_height_small',
+];
+
 class Giphyexp extends Component {
   constructor(props) {
     super(props);
     this.state = {
       searchText: 'adventure time',
+      imageStyle: IMAGE_STYLES[0],
       format: 'webp',
       images: [],
     };
@@ -36,13 +44,13 @@ class Giphyexp extends Component {
       then((response) => {
       let results = response.data;
       let images = [];
+      let style = this.state.imageStyle;
       results.forEach((result) => {
-        let webp = result.images.original.webp;
-        let gif = result.images.original.url;
-        let still = result.images.original_still.url;
-        let width = parseInt(result.images.original.width, 10);
-        let height = parseInt(result.images.original.height, 10);
-        images.push({webp, gif, still, width, height});
+        let webp = result.images[style].webp;
+        let gif = result.images[style].url;
+        let width = parseInt(result.images[style].width, 10);
+        let height = parseInt(result.images[style].height, 10);
+        images.push({webp, gif, width, height});
       });
 
       this.setState({images});
@@ -65,7 +73,7 @@ class Giphyexp extends Component {
               <View style={styles.imageContainer} key={i}>
                 <Image
                   source={this.state.format === 'webp' ? {uri: image.webp} : {uri: image.gif}}
-                  style={{ width: WindowWidth, height: ((image.height / image.width) * WindowWidth) }} />
+                  style={{ borderRadius: 5, width: WindowWidth, height: ((image.height / image.width) * WindowWidth) }} />
               </View>
             );
           })}
@@ -78,16 +86,36 @@ class Giphyexp extends Component {
             onChangeText={(value) => { this.setState({searchText: value}) }} />
         </View>
 
-        <View style={{position: 'absolute', bottom: 0, left: 0, right: 0, height: 65, backgroundColor: 'rgba(255,255,255,0.2)'}}>
-          <TouchableOpacity onPress={this.toggleFormat.bind(this)} style={{paddingHorizontal: 20, paddingVertical: 10, backgroundColor: 'orange', borderRadius: 5, alignSelf: 'center', marginTop: 15,}}>
+        <View style={{position: 'absolute', bottom: 0, left: 0, right: 0, height: 65, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)'}}>
+          <TouchableOpacity
+            onPress={this.toggleFormat.bind(this)}
+            style={{paddingHorizontal: 20, paddingVertical: 10, height: 40, backgroundColor: 'orange', borderRadius: 5 }}>
             <Text>
               currently using: {this.state.format}
             </Text>
           </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={this.toggleImageStyle.bind(this)}
+              style={{paddingHorizontal: 20, height: 40, paddingVertical: 10, marginLeft: 15, backgroundColor: 'orange', borderRadius: 5, alignSelf: 'center' }}>
+              <Text>
+                {this.state.imageStyle}
+              </Text>
+            </TouchableOpacity>
         </View>
       </View>
     );
   }
+
+  toggleImageStyle() {
+    let currentImageStyleIdx = IMAGE_STYLES.indexOf(this.state.imageStyle);
+    this.setState({
+      imageStyle: IMAGE_STYLES[(currentImageStyleIdx + 1) % IMAGE_STYLES.length],
+    });
+
+    this.refreshImages(this.state.searchText);
+  }
+
 
   toggleFormat() {
     if (this.state.format === 'webp') {
